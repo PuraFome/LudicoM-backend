@@ -16,7 +16,7 @@ Get-Content $envFile | ForEach-Object {
         $name = $parts[0].Trim()
         $value = $parts[1]
         Write-Host "Setting env $name" -ForegroundColor Green
-        $env:$name = $value
+        Set-Item -Path "env:$name" -Value $value
     }
 }
 

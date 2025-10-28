@@ -1,7 +1,11 @@
 package com.ludicom.backend.model;
 
-import jakarta.persistence.*;
-import java.util.UUID;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "instituicao")
@@ -9,7 +13,7 @@ public class Instituicao {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(columnDefinition = "text")
-    private UUID uid;
+    private String uid;
 
     @Column(nullable = false, columnDefinition="varchar(200)")
     private String nome;
@@ -28,7 +32,7 @@ public class Instituicao {
     }
 
     // Getters e Setters
-    public UUID getUid() {
+    public String getUid() {
         return uid;
     }
     

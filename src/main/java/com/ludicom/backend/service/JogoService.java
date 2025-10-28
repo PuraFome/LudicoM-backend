@@ -8,6 +8,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.ludicom.backend.dto.JogoCreateRequest;
 import com.ludicom.backend.dto.JogoResponse;
+import com.ludicom.backend.dto.MessageResponse;
+import com.ludicom.backend.exception.RequiredFieldException;
 import com.ludicom.backend.exception.ResourceAlreadyExistsException;
 import com.ludicom.backend.exception.ResourceNotFoundException;
 import com.ludicom.backend.model.Jogo;
@@ -27,6 +29,10 @@ public class JogoService {
      * Criando um novo jogo
      */
     public JogoResponse createJogo(JogoCreateRequest request) {
+        if(request.getNome() == null || request.getNome().trim().isEmpty()) {
+            throw new RequiredFieldException("Jogo", "nome");
+        }
+
         // Verifica se o nome do jogo já existe
         if (jogoRepository.existsByNome(request.getNome())) {
           throw new ResourceAlreadyExistsException("Jogo", "nome", request.getNome());
@@ -60,6 +66,10 @@ public class JogoService {
      * Atualizar um jogo existente
      */
     public JogoResponse updateJogo(String id, JogoCreateRequest request) {
+        if(request.getNome() == null || request.getNome().trim().isEmpty()) {
+            throw new RequiredFieldException("Jogo", "nome");
+        }
+
         Jogo jogo = jogoRepository.findByUid(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Jogo", "ID", id));
 
@@ -84,11 +94,12 @@ public class JogoService {
     /*
      * Deletar um jogo
      */
-    public void deleteJogo(String id) {
+    public MessageResponse deleteJogo(String id) {
         if (!jogoRepository.existsById(id)) {
             throw new ResourceNotFoundException("Jogo", "ID", id);
         }
         jogoRepository.deleteById(id);
+        return new MessageResponse("Jogo deletado com sucesso");
     }
 
     private JogoResponse convertToResponse(Jogo jogo) {

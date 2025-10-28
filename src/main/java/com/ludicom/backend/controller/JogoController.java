@@ -17,13 +17,14 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.ludicom.backend.dto.JogoCreateRequest;
 import com.ludicom.backend.dto.JogoResponse;
+import com.ludicom.backend.dto.MessageResponse;
 import com.ludicom.backend.service.JogoService;
 
 import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/jogo")
-@CrossOrigin(origins = "*")
+@CrossOrigin(origins = "*") // mudar para o domínio do frontend em produção
 @Validated
 public class JogoController {
 
@@ -73,8 +74,8 @@ public class JogoController {
      * Deletar um jogo
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteJogo(@PathVariable String id) {
-        jogoService.deleteJogo(id);
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<MessageResponse> deleteJogo(@PathVariable String id) {
+        MessageResponse response = jogoService.deleteJogo(id);
+        return ResponseEntity.ok(response);
     }
 }

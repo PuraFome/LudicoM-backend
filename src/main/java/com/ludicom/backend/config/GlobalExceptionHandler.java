@@ -1,6 +1,5 @@
 package com.ludicom.backend.config;
 
-import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -11,11 +10,11 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import com.ludicom.backend.exception.ResourceAlreadyExistsException;
-import com.ludicom.backend.exception.ResourceNotFoundException;
+import com.ludicom.backend.dto.ErrorResponse;
+import com.ludicom.backend.exception.BaseException;
 
 /**
- * Global exception handler for the application
+ * Global exception handler for the application 
  * Provides centralized error handling and consistent error responses
  */
 @RestControllerAdvice
@@ -25,76 +24,50 @@ public class GlobalExceptionHandler {
      * Handle validation errors
      */
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, Object>> handleValidationExceptions(
+    public ResponseEntity<ErrorResponse> handleValidationExceptions(
             MethodArgumentNotValidException ex) {
-        
-        Map<String, Object> response = new HashMap<>();
+
         Map<String, String> errors = new HashMap<>();
-        
+
         ex.getBindingResult().getAllErrors().forEach((error) -> {
             String fieldName = ((FieldError) error).getField();
             String errorMessage = error.getDefaultMessage();
             errors.put(fieldName, errorMessage);
         });
-        
-        response.put("errors", errors);
-        response.put("message", "Validation failed");
-        response.put("timestamp", LocalDateTime.now());
-        response.put("status", HttpStatus.BAD_REQUEST.value());
-        
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+
+        ErrorResponse errorResponse = new ErrorResponse(
+            "Erro de validação",
+            errors,
+            HttpStatus.BAD_REQUEST.value()
+        );
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
     }
 
     /**
-     * Handle resource not found exceptions
+     * Handle all custom exceptions that implement BaseException
      */
-    @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<Map<String, Object>> handleResourceNotFoundException(ResourceNotFoundException ex) {
-        Map<String, Object> response = new HashMap<>();
-        response.put("error", ex.getMessage());
-        response.put("timestamp", LocalDateTime.now());
-        response.put("status", HttpStatus.NOT_FOUND.value());
-        
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-    }
+    @ExceptionHandler(BaseException.class)
+    public ResponseEntity<ErrorResponse> handleBaseException(BaseException ex) {
+        ErrorResponse errorResponse = new ErrorResponse(
+            ex.getMessage(),
+            ex.getErrorDetails(),
+            ex.getHttpStatus().value()
+        );
 
-        /**
-         * Handle resource already exists exceptions
-         */
-        @ExceptionHandler(ResourceAlreadyExistsException.class)
-        public ResponseEntity<Map<String, Object>> handleResourceAlreadyExistsException(ResourceAlreadyExistsException ex) {
-            Map<String, Object> response = new HashMap<>();
-            response.put("error", ex.getMessage());
-            response.put("timestamp", LocalDateTime.now());
-            response.put("status", HttpStatus.CONFLICT.value());
-        
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
-        }
-
-    /**
-     * Handle runtime exceptions
-     */
-    @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<Map<String, Object>> handleRuntimeException(RuntimeException ex) {
-        Map<String, Object> response = new HashMap<>();
-        response.put("error", ex.getMessage());
-        response.put("timestamp", LocalDateTime.now());
-        response.put("status", HttpStatus.BAD_REQUEST.value());
-        
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        return ResponseEntity.status(ex.getHttpStatus()).body(errorResponse);
     }
 
     /**
      * Handle general exceptions
      */
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<Map<String, Object>> handleGeneralException(Exception ex) {
-        Map<String, Object> response = new HashMap<>();
-        response.put("error", "An unexpected error occurred");
-        response.put("message", ex.getMessage());
-        response.put("timestamp", LocalDateTime.now());
-        response.put("status", HttpStatus.INTERNAL_SERVER_ERROR.value());
-        
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+    public ResponseEntity<ErrorResponse> handleGeneralException(Exception ex) {
+        ErrorResponse errorResponse = new ErrorResponse(
+            "Ocorreu um erro inesperado",
+            HttpStatus.INTERNAL_SERVER_ERROR.value()
+        );
+
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
     }
 }
