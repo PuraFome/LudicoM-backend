@@ -20,7 +20,7 @@ public interface InstituicaoRepository extends JpaRepository<Instituicao, String
     @Query("SELECT i FROM Instituicao i WHERE LOWER(i.nome) LIKE LOWER(CONCAT('%', :nome, '%'))")
     List<Instituicao> findByNomeContainingIgnoreCase(String nome);
 
-    @Query("SELECT i FROM Instituicao i WHERE i.uid = :uid")
+    // Usando método padrão do JPA para buscar por uid
     Optional<Instituicao> findByUid(String uid);
 
 }

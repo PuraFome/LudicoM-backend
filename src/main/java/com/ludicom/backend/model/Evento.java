@@ -1,6 +1,5 @@
 package com.ludicom.backend.model;
 import java.time.LocalDate;
-import java.util.UUID;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -11,7 +10,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 @Entity
 @Table(name = "evento")
@@ -20,26 +19,24 @@ public class Evento {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(columnDefinition = "text")
-    private UUID uid;
+    private String uid;
 
-    @NotBlank(message = "Instituição é obrigatória")
-    @ManyToOne(fetch = FetchType.LAZY)
+
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "id_instituicao", nullable = false)
     private Instituicao instituicao;
 
-    @NotBlank(message = "Data do evento é obrigatória")
+    @NotNull(message = "Data do evento é obrigatória")
     @Column(name = "data", nullable = false, columnDefinition="date")
     private LocalDate data;
 
-    @NotBlank(message = "Horário de início é obrigatório")
     @Column(name = "hora_inicio", nullable = false, columnDefinition="time")
     private String horaInicio;
 
-    @NotBlank(message = "Horário de término é obrigatório")
     @Column(name = "hora_fim", nullable = false, columnDefinition="time")
     private String horaFim;
 
-    public UUID getUid() {
+    public String getUid() {
         return uid;
     }
 
