@@ -2,7 +2,6 @@ package com.ludicom.backend.model;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
-import java.util.UUID;
 
 /**
  * Entidade Participante para representar os participantes do sistema
@@ -14,10 +13,10 @@ public class Participante {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(columnDefinition = "text")
-    private UUID uid;
+    @Column(name = "uid", updatable = false, nullable = false)
+    private String uid;
 
-    @Column(name="id_instituicao", unique = true, nullable =true)
+    @Column(name="id_instituicao", nullable =true)
     private String idInstituicao;
 
     @NotBlank(message = "Insira o Nome")
@@ -53,7 +52,7 @@ public class Participante {
         this.email = email;
     }
 
-    public UUID getId() {
+    public String getId() {
         return uid;
     }
 
@@ -69,7 +68,7 @@ public class Participante {
 
     public void setEmail(String email) { this.email = email; }
 
-    public String getIdInstituicao() { return idInstituicao; }
+    public String getInstituicao() { return idInstituicao; }
 
     public void setIdInstituicao(String id_instituicao) { this.idInstituicao = id_instituicao; }
 
