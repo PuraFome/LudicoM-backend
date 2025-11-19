@@ -24,7 +24,8 @@ public class ParticipanteService {
     private final ParticipanteRepository participanteRepository;
     private final InstituicaoRepository instituicaoRepository;
 
-    public ParticipanteService(ParticipanteRepository participanteRepository, InstituicaoRepository instituicaoRepository) {
+    public ParticipanteService(ParticipanteRepository participanteRepository,
+            InstituicaoRepository instituicaoRepository) {
         this.participanteRepository = participanteRepository;
         this.instituicaoRepository = instituicaoRepository;
     }
@@ -57,8 +58,8 @@ public class ParticipanteService {
 
         // Normalizar idInstituicao: vazio vira null
         String idInstituicao = (request.getIdInstituicao() == null || request.getIdInstituicao().trim().isEmpty())
-            ? null
-            : request.getIdInstituicao();
+                ? null
+                : request.getIdInstituicao();
 
         // Se não há instituição, forçar RA a ser null
         String ra = idInstituicao == null ? null : request.getRa();
@@ -71,21 +72,20 @@ public class ParticipanteService {
 
             // Verifica se o RA já existe (se foi fornecido)
             if (ra != null && !ra.trim().isEmpty() &&
-                participanteRepository.existsByRa(ra)) {
+                    participanteRepository.existsByRa(ra)) {
                 throw new ResourceAlreadyExistsException("Participante", "ra", ra);
             }
         }
 
         Participante participante = new Participante(
-            request.getNome(),
-            request.getEmail(),
-            idInstituicao,
-            request.getDocumento(),
-            ra
-        );
+                request.getNome(),
+                request.getEmail(),
+                instituicao,
+                request.getDocumento(),
+                ra);
 
         Participante savedParticipante = participanteRepository.save(participante);
-        return convertToResponse(savedParticipante, instituicao);
+        return convertToResponse(savedParticipante);
     }
 
     /**
@@ -94,13 +94,7 @@ public class ParticipanteService {
     @Transactional(readOnly = true)
     public List<ParticipanteResponse> getAllParticipantes() {
         return participanteRepository.findAll().stream()
-                .map(p -> {
-                    Instituicao instituicao = null;
-                    if (p.getInstituicao() != null && !p.getInstituicao().isEmpty()) {
-                        instituicao = instituicaoRepository.findById(p.getInstituicao()).orElse(null);
-                    }
-                    return convertToResponse(p, instituicao);
-                })
+                .map(this::convertToResponse)
                 .collect(Collectors.toList());
     }
 
@@ -112,12 +106,7 @@ public class ParticipanteService {
         Participante participante = participanteRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Participante", "ID", id));
 
-        Instituicao instituicao = null;
-        if (participante.getInstituicao() != null && !participante.getInstituicao().isEmpty()) {
-            instituicao = instituicaoRepository.findById(participante.getInstituicao()).orElse(null);
-        }
-
-        return convertToResponse(participante, instituicao);
+        return convertToResponse(participante);
     }
 
     /**
@@ -139,22 +128,24 @@ public class ParticipanteService {
         Participante participante = participanteRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Participante", "ID", id));
 
-        // Verifica se o email está sendo alterado e se já existe outro participante com esse email
+        // Verifica se o email está sendo alterado e se já existe outro participante com
+        // esse email
         if (!participante.getEmail().equals(request.getEmail()) &&
-            participanteRepository.existsByEmail(request.getEmail())) {
+                participanteRepository.existsByEmail(request.getEmail())) {
             throw new ResourceAlreadyExistsException("Participante", "email", request.getEmail());
         }
 
-        // Verifica se o documento está sendo alterado e se já existe outro participante com esse documento
+        // Verifica se o documento está sendo alterado e se já existe outro participante
+        // com esse documento
         if (!participante.getDocumento().equals(request.getDocumento()) &&
-            participanteRepository.existsByDocumento(request.getDocumento())) {
+                participanteRepository.existsByDocumento(request.getDocumento())) {
             throw new ResourceAlreadyExistsException("Participante", "documento", request.getDocumento());
         }
 
         // Normalizar idInstituicao: vazio vira null
         String idInstituicao = (request.getIdInstituicao() == null || request.getIdInstituicao().trim().isEmpty())
-            ? null
-            : request.getIdInstituicao();
+                ? null
+                : request.getIdInstituicao();
 
         // Se não há instituição, forçar RA a ser null
         String ra = idInstituicao == null ? null : request.getRa();
@@ -165,10 +156,11 @@ public class ParticipanteService {
             instituicao = instituicaoRepository.findById(idInstituicao)
                     .orElseThrow(() -> new ResourceNotFoundException("Instituição", "ID", idInstituicao));
 
-            // Verifica se o RA está sendo alterado e se já existe outro participante com esse RA
+            // Verifica se o RA está sendo alterado e se já existe outro participante com
+            // esse RA
             if (ra != null && !ra.trim().isEmpty()) {
                 if (!participante.getRa().equals(ra) &&
-                    participanteRepository.existsByRa(ra)) {
+                        participanteRepository.existsByRa(ra)) {
                     throw new ResourceAlreadyExistsException("Participante", "ra", ra);
                 }
             }
@@ -177,11 +169,11 @@ public class ParticipanteService {
         participante.setNome(request.getNome());
         participante.setEmail(request.getEmail());
         participante.setDocumento(request.getDocumento());
-        participante.setIdInstituicao(idInstituicao);
+        participante.setInstituicao(instituicao);
         participante.setRa(ra);
 
         Participante updatedParticipante = participanteRepository.save(participante);
-        return convertToResponse(updatedParticipante, instituicao);
+        return convertToResponse(updatedParticipante);
     }
 
     /**
@@ -198,14 +190,13 @@ public class ParticipanteService {
     /**
      * Converter Participante para ParticipanteResponse
      */
-    private ParticipanteResponse convertToResponse(Participante participante, Instituicao instituicao) {
+    private ParticipanteResponse convertToResponse(Participante participante) {
         return new ParticipanteResponse(
-            participante.getId(),
-            participante.getNome(),
-            participante.getEmail(),
-            participante.getDocumento(),
-            instituicao,
-            participante.getRa()
-        );
+                participante.getId(),
+                participante.getNome(),
+                participante.getEmail(),
+                participante.getDocumento(),
+                participante.getInstituicao(),
+                participante.getRa());
     }
 }

@@ -16,32 +16,33 @@ public class Participante {
     @Column(name = "uid", updatable = false, nullable = false)
     private String uid;
 
-    @Column(name="id_instituicao", nullable =true)
-    private String idInstituicao;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "uid_instituicao", nullable = true)
+    private Instituicao instituicao;
 
     @NotBlank(message = "Insira o Nome")
-    @Column(unique = false, nullable = false, columnDefinition="varchar(200)")
+    @Column(unique = false, nullable = false, columnDefinition = "varchar(200)")
     private String nome;
 
-    @Column(unique = true, nullable = false, columnDefinition ="varchar(150)")
+    @Column(unique = true, nullable = false, columnDefinition = "varchar(150)")
     private String email;
 
     @NotBlank(message = "Insira o documento")
-    @Column(unique = true, nullable = false, columnDefinition ="varchar(30)")
+    @Column(unique = true, nullable = false, columnDefinition = "varchar(30)")
     private String documento;
 
-    @Column(unique = true, nullable = true, columnDefinition ="varchar(15)")
+    @Column(unique = true, nullable = true, columnDefinition = "varchar(15)")
     private String ra;
 
     // Constructors
     public Participante() {
     }
 
-    public Participante(String nome, String email, String id_instituicao, String documento, String ra) {
+    public Participante(String nome, String email, Instituicao instituicao, String documento, String ra) {
         this();
         this.nome = nome;
         this.email = email;
-        this.idInstituicao = id_instituicao;
+        this.instituicao = instituicao;
         this.documento = documento;
         this.ra = ra;
 
@@ -64,20 +65,36 @@ public class Participante {
         this.nome = nome;
     }
 
-    public String getEmail() { return email; }
+    public String getEmail() {
+        return email;
+    }
 
-    public void setEmail(String email) { this.email = email; }
+    public void setEmail(String email) {
+        this.email = email;
+    }
 
-    public String getInstituicao() { return idInstituicao; }
+    public Instituicao getInstituicao() {
+        return instituicao;
+    }
 
-    public void setIdInstituicao(String id_instituicao) { this.idInstituicao = id_instituicao; }
+    public void setInstituicao(Instituicao instituicao) {
+        this.instituicao = instituicao;
+    }
 
-    public String getDocumento() { return documento; }
+    public String getDocumento() {
+        return documento;
+    }
 
-    public void setDocumento(String documento) { this.documento = documento; }
+    public void setDocumento(String documento) {
+        this.documento = documento;
+    }
 
-    public String getRa() { return ra; }
+    public String getRa() {
+        return ra;
+    }
 
-    public void setRa(String ra) { this.ra = ra; }
+    public void setRa(String ra) {
+        this.ra = ra;
+    }
 
 }
