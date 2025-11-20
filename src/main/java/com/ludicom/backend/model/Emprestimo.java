@@ -10,7 +10,6 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 @Entity
@@ -37,12 +36,10 @@ public class Emprestimo {
     @JoinColumn(name = "id_evento", nullable = false)
     private Evento evento;
 
-    @NotBlank(message = "Horário do empréstimo é obrigatório")
     @Column(name = "hora_emprestimo", nullable = false, columnDefinition = "time")
     private String horaEmprestimo;
 
-    @NotBlank(message = "Horário da devolução é obrigatório")
-    @Column(name = "hora_devolucao", nullable = false, columnDefinition = "time")
+    @Column(name = "hora_devolucao", columnDefinition = "time")
     private String horaDevolucao;
 
     @Column(name = "is_devolvido", nullable = false)

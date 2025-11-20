@@ -16,10 +16,8 @@ public class EmprestimoCreateRequest {
     @NotBlank(message = "ID do evento é obrigatório")
     private String idEvento;
 
-    @NotBlank(message = "Horário do empréstimo é obrigatório")
     private String horaEmprestimo;
 
-    @NotBlank(message = "Horário da devolução é obrigatório")
     private String horaDevolucao;
 
     private Boolean isDevolvido = false;

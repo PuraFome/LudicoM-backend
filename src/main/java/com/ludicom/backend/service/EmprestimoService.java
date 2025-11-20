@@ -1,11 +1,14 @@
 package com.ludicom.backend.service;
 
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.ludicom.backend.dto.DevolucaoRequest;
 import com.ludicom.backend.dto.EmprestimoCreateRequest;
 import com.ludicom.backend.dto.EmprestimoResponse;
 import com.ludicom.backend.dto.EventoResponse;
@@ -14,7 +17,9 @@ import com.ludicom.backend.dto.JogoResponse;
 import com.ludicom.backend.dto.MessageResponse;
 import com.ludicom.backend.dto.ParticipanteResponse;
 import com.ludicom.backend.exception.RequiredFieldException;
+import com.ludicom.backend.exception.ResourceAlreadyExistsException;
 import com.ludicom.backend.exception.ResourceNotFoundException;
+import com.ludicom.backend.exception.ResourceUnavailableException;
 import com.ludicom.backend.model.Emprestimo;
 import com.ludicom.backend.model.Evento;
 import com.ludicom.backend.model.Jogo;
@@ -57,16 +62,22 @@ public class EmprestimoService {
         if (request.getIdEvento() == null || request.getIdEvento().trim().isEmpty()) {
             throw new RequiredFieldException("Emprestimo", "idEvento");
         }
-        if (request.getHoraEmprestimo() == null || request.getHoraEmprestimo().trim().isEmpty()) {
-            throw new RequiredFieldException("Emprestimo", "horaEmprestimo");
-        }
-        if (request.getHoraDevolucao() == null || request.getHoraDevolucao().trim().isEmpty()) {
-            throw new RequiredFieldException("Emprestimo", "horaDevolucao");
+
+        // Definir hora atual se não fornecida
+        String horaEmprestimo = request.getHoraEmprestimo();
+        if (horaEmprestimo == null || horaEmprestimo.trim().isEmpty()) {
+            horaEmprestimo = LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss"));
         }
 
         // Buscar entidades relacionadas
         Jogo jogo = jogoRepository.findById(request.getIdJogo())
                 .orElseThrow(() -> new ResourceNotFoundException("Jogo", "ID", request.getIdJogo()));
+
+        // Verificar se o jogo está disponível
+        if (!jogo.getIsDisponivel()) {
+            String mensagem = String.format("O jogo %s não está disponível para emprestimo", jogo.getNome());
+            throw new ResourceUnavailableException(mensagem);
+        }
 
         Participante participante = participanteRepository.findById(request.getIdParticipante())
                 .orElseThrow(() -> new ResourceNotFoundException("Participante", "ID", request.getIdParticipante()));
@@ -74,14 +85,26 @@ public class EmprestimoService {
         Evento evento = eventoRepository.findById(request.getIdEvento())
                 .orElseThrow(() -> new ResourceNotFoundException("Evento", "ID", request.getIdEvento()));
 
+        // Verificar se o participante já tem um empréstimo ativo
+        emprestimoRepository.findActiveEmprestimoByParticipante(participante).ifPresent(emprestimoAtivo -> {
+            String mensagem = String.format("O usuário %s, já possui um empréstimo ativo, com o jogo %s",
+                    participante.getNome(),
+                    emprestimoAtivo.getJogo().getNome());
+            throw new ResourceAlreadyExistsException(mensagem);
+        });
+
         // Criar empréstimo
         Emprestimo emprestimo = new Emprestimo();
         emprestimo.setJogo(jogo);
         emprestimo.setParticipante(participante);
         emprestimo.setEvento(evento);
-        emprestimo.setHoraEmprestimo(request.getHoraEmprestimo());
+        emprestimo.setHoraEmprestimo(horaEmprestimo);
         emprestimo.setHoraDevolucao(request.getHoraDevolucao());
-        emprestimo.setDevolvido(request.getIsDevolvido() != null ? request.getIsDevolvido() : false);
+        emprestimo.setDevolvido(request.getIsDevolvido() != null ? request.getIsDevolvido() : Boolean.FALSE);
+
+        // Marcar jogo como indisponível
+        jogo.setIsDisponivel(false);
+        jogoRepository.save(jogo);
 
         Emprestimo savedEmprestimo = emprestimoRepository.save(emprestimo);
         return convertToResponse(savedEmprestimo);
@@ -122,11 +145,11 @@ public class EmprestimoService {
         if (request.getIdEvento() == null || request.getIdEvento().trim().isEmpty()) {
             throw new RequiredFieldException("Emprestimo", "idEvento");
         }
-        if (request.getHoraEmprestimo() == null || request.getHoraEmprestimo().trim().isEmpty()) {
-            throw new RequiredFieldException("Emprestimo", "horaEmprestimo");
-        }
-        if (request.getHoraDevolucao() == null || request.getHoraDevolucao().trim().isEmpty()) {
-            throw new RequiredFieldException("Emprestimo", "horaDevolucao");
+
+        // Definir hora atual se não fornecida
+        String horaEmprestimo = request.getHoraEmprestimo();
+        if (horaEmprestimo == null || horaEmprestimo.trim().isEmpty()) {
+            horaEmprestimo = LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss"));
         }
 
         Emprestimo emprestimo = emprestimoRepository.findById(id)
@@ -146,9 +169,35 @@ public class EmprestimoService {
         emprestimo.setJogo(jogo);
         emprestimo.setParticipante(participante);
         emprestimo.setEvento(evento);
-        emprestimo.setHoraEmprestimo(request.getHoraEmprestimo());
+        emprestimo.setHoraEmprestimo(horaEmprestimo);
         emprestimo.setHoraDevolucao(request.getHoraDevolucao());
-        emprestimo.setDevolvido(request.getIsDevolvido() != null ? request.getIsDevolvido() : false);
+        emprestimo.setDevolvido(request.getIsDevolvido() != null ? request.getIsDevolvido() : Boolean.FALSE);
+
+        Emprestimo updatedEmprestimo = emprestimoRepository.save(emprestimo);
+        return convertToResponse(updatedEmprestimo);
+    }
+
+    /**
+     * Processar devolução de empréstimo
+     */
+    public EmprestimoResponse processarDevolucao(DevolucaoRequest request) {
+        // Validação
+        if (request.getCodigoDeBarras() == null || request.getCodigoDeBarras().trim().isEmpty()) {
+            throw new RequiredFieldException("Devolucao", "codigoDeBarras");
+        }
+
+        // Buscar empréstimo ativo pelo código de barras
+        Emprestimo emprestimo = emprestimoRepository.findActiveEmprestimoByCodigoDeBarras(request.getCodigoDeBarras())
+                .orElseThrow(() -> new ResourceNotFoundException("Emprestimo ativo", "código de barras", request.getCodigoDeBarras()));
+
+        // Marcar como devolvido e registrar hora de devolução
+        emprestimo.setDevolvido(true);
+        emprestimo.setHoraDevolucao(LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss")));
+
+        // Marcar jogo como disponível novamente
+        Jogo jogo = emprestimo.getJogo();
+        jogo.setIsDisponivel(true);
+        jogoRepository.save(jogo);
 
         Emprestimo updatedEmprestimo = emprestimoRepository.save(emprestimo);
         return convertToResponse(updatedEmprestimo);

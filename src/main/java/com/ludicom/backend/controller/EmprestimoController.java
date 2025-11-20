@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.ludicom.backend.dto.DevolucaoRequest;
 import com.ludicom.backend.dto.EmprestimoCreateRequest;
 import com.ludicom.backend.dto.EmprestimoResponse;
 import com.ludicom.backend.dto.MessageResponse;
@@ -68,6 +69,15 @@ public class EmprestimoController {
     public ResponseEntity<EmprestimoResponse> updateEmprestimo(@PathVariable String id,
             @Valid @RequestBody EmprestimoCreateRequest request) {
         EmprestimoResponse response = emprestimoService.updateEmprestimo(id, request);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Processar devolução de empréstimo pelo código de barras do jogo
+     */
+    @PostMapping("/devolver")
+    public ResponseEntity<EmprestimoResponse> devolverEmprestimo(@Valid @RequestBody DevolucaoRequest request) {
+        EmprestimoResponse response = emprestimoService.processarDevolucao(request);
         return ResponseEntity.ok(response);
     }
 
