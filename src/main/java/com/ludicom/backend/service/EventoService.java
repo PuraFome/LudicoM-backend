@@ -26,10 +26,23 @@ public class EventoService {
 
     private final EventoRepository eventoRepository;
     private final InstituicaoRepository instituicaoRepository;
+    private final com.ludicom.backend.repository.EmprestimoRepository emprestimoRepository;
 
-    public EventoService(EventoRepository eventoRepository, InstituicaoRepository instituicaoRepository) {
+    public EventoService(EventoRepository eventoRepository, InstituicaoRepository instituicaoRepository,
+            com.ludicom.backend.repository.EmprestimoRepository emprestimoRepository) {
         this.eventoRepository = eventoRepository;
         this.instituicaoRepository = instituicaoRepository;
+        this.emprestimoRepository = emprestimoRepository;
+    }
+
+    /**
+     * Normaliza formato de hora, adicionando :00 se estiver no formato HH:MM
+     */
+    private String normalizeTimeFormat(String time) {
+        if (time != null && time.matches("^([01]\\d|2[0-3]):([0-5]\\d)$")) {
+            return time + ":00";
+        }
+        return time;
     }
 
     /*
@@ -59,8 +72,8 @@ public class EventoService {
         Evento evento = new Evento();
         evento.setInstituicao(instituicao);
         evento.setData(dataEvento);
-        evento.setHoraInicio(request.getHoraInicio());
-        evento.setHoraFim(request.getHoraFim());
+        evento.setHoraInicio(normalizeTimeFormat(request.getHoraInicio()));
+        evento.setHoraFim(normalizeTimeFormat(request.getHoraFim()));
 
         Evento savedEvento = eventoRepository.save(evento);
         
@@ -114,8 +127,8 @@ public class EventoService {
 
         evento.setInstituicao(instituicao);
         evento.setData(dataEvento);
-        evento.setHoraInicio(request.getHoraInicio());
-        evento.setHoraFim(request.getHoraFim());
+        evento.setHoraInicio(normalizeTimeFormat(request.getHoraInicio()));
+        evento.setHoraFim(normalizeTimeFormat(request.getHoraFim()));
 
         Evento updatedEvento = eventoRepository.save(evento);
         
@@ -130,6 +143,13 @@ public class EventoService {
         if (!eventoRepository.existsById(id)) {
             throw new ResourceNotFoundException("Evento", "ID", id);
         }
+        
+        // Excluir todos os empréstimos associados ao evento antes de excluir o evento
+        List<com.ludicom.backend.model.Emprestimo> emprestimos = emprestimoRepository.findByEventoId(id);
+        if (!emprestimos.isEmpty()) {
+            emprestimoRepository.deleteAll(emprestimos);
+        }
+        
         eventoRepository.deleteById(id);
         return new MessageResponse("Evento deletado com sucesso");
     }

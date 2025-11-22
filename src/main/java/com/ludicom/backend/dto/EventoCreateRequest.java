@@ -15,11 +15,11 @@ public class EventoCreateRequest {
     private String data;
 
     @NotBlank(message = "Horário de início é obrigatório")
-    @Pattern(regexp = "^([01]\\d|2[0-3]):([0-5]\\d):([0-5]\\d)$", message = "Horário de início deve estar no formato HH:MM:SS")
+    @Pattern(regexp = "^([01]\\d|2[0-3]):([0-5]\\d)(:[0-5]\\d)?$", message = "Horário de início deve estar no formato HH:MM ou HH:MM:SS")
     private String horaInicio;
 
     @NotBlank(message = "Horário de término é obrigatório")
-    @Pattern(regexp = "^([01]\\d|2[0-3]):([0-5]\\d):([0-5]\\d)$", message = "Horário de término deve estar no formato HH:MM:SS")
+    @Pattern(regexp = "^([01]\\d|2[0-3]):([0-5]\\d)(:[0-5]\\d)?$", message = "Horário de término deve estar no formato HH:MM ou HH:MM:SS")
     private String horaFim;
 
     // Constructors
