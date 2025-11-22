@@ -1,6 +1,14 @@
 package com.ludicom.backend.model;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 
 /**
@@ -17,7 +25,7 @@ public class Participante {
     private String uid;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "uid_instituicao", nullable = true)
+    @JoinColumn(name = "id_instituicao", nullable = true)
     private Instituicao instituicao;
 
     @NotBlank(message = "Insira o Nome")
