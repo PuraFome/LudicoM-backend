@@ -24,7 +24,7 @@ public class Participante {
     @Column(name = "uid", updatable = false, nullable = false)
     private String uid;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "id_instituicao", nullable = true)
     private Instituicao instituicao;
 
