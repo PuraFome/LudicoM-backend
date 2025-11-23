@@ -12,35 +12,39 @@ import com.ludicom.backend.dto.MessageResponse;
 import com.ludicom.backend.exception.RequiredFieldException;
 import com.ludicom.backend.exception.ResourceAlreadyExistsException;
 import com.ludicom.backend.exception.ResourceNotFoundException;
+import com.ludicom.backend.exception.ResourceInUseException;
 import com.ludicom.backend.model.Jogo;
 import com.ludicom.backend.repository.JogoRepository;
+import com.ludicom.backend.repository.EmprestimoRepository;
 
 @Service
 @Transactional
 public class JogoService {
 
     private final JogoRepository jogoRepository;
+    private final EmprestimoRepository emprestimoRepository;
 
-    public JogoService(JogoRepository jogoRepository) {
+    public JogoService(JogoRepository jogoRepository, EmprestimoRepository emprestimoRepository) {
         this.jogoRepository = jogoRepository;
+        this.emprestimoRepository = emprestimoRepository;
     }
 
     /*
      * Criando um novo jogo
      */
     public JogoResponse createJogo(JogoCreateRequest request) {
-        if(request.getNome() == null || request.getNome().trim().isEmpty()) {
+        if (request.getNome() == null || request.getNome().trim().isEmpty()) {
             throw new RequiredFieldException("Jogo", "nome");
         }
 
         // Verifica se o nome do jogo já existe
         if (jogoRepository.existsByNome(request.getNome())) {
-          throw new ResourceAlreadyExistsException("Jogo", "nome", request.getNome());
+            throw new ResourceAlreadyExistsException("Jogo", "nome", request.getNome());
         }
 
         Jogo jogo = new Jogo(request.getNome(), request.getNomeAlternativo(), request.getAnoPublicacao(),
-                             request.getTempoDeJogo(), request.getMinimoJogadores(), request.getMaximoJogadores(),
-                             request.getCodigoDeBarras(), request.getIsDisponivel());
+                request.getTempoDeJogo(), request.getMinimoJogadores(), request.getMaximoJogadores(),
+                request.getCodigoDeBarras(), request.getIsDisponivel());
         Jogo savedJogo = jogoRepository.save(jogo);
         return convertToResponse(savedJogo);
     }
@@ -66,16 +70,17 @@ public class JogoService {
      * Atualizar um jogo existente
      */
     public JogoResponse updateJogo(String id, JogoCreateRequest request) {
-        if(request.getNome() == null || request.getNome().trim().isEmpty()) {
+        if (request.getNome() == null || request.getNome().trim().isEmpty()) {
             throw new RequiredFieldException("Jogo", "nome");
         }
 
         Jogo jogo = jogoRepository.findByUid(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Jogo", "ID", id));
 
-        // Verifica se o nome está sendo alterado e se já existe outro jogo com esse nome
+        // Verifica se o nome está sendo alterado e se já existe outro jogo com esse
+        // nome
         if (!jogo.getNome().equals(request.getNome()) && jogoRepository.existsByNome(request.getNome())) {
-              throw new ResourceAlreadyExistsException("Jogo", "nome", request.getNome());
+            throw new ResourceAlreadyExistsException("Jogo", "nome", request.getNome());
         }
 
         jogo.setNome(request.getNome());
@@ -95,26 +100,33 @@ public class JogoService {
      * Deletar um jogo
      */
     public MessageResponse deleteJogo(String id) {
+        // Verifica se jogo existe
         if (!jogoRepository.existsById(id)) {
             throw new ResourceNotFoundException("Jogo", "ID", id);
         }
+
+        // Bloqueia exclusão se houver QUALQUER empréstimo referenciando o jogo (ativo
+        // ou histórico)
+        if (emprestimoRepository.existsByJogoUid(id)) {
+            throw new ResourceInUseException("Jogo");
+        }
+
         jogoRepository.deleteById(id);
         return new MessageResponse("Jogo deletado com sucesso");
     }
 
     private JogoResponse convertToResponse(Jogo jogo) {
         return new JogoResponse(
-            jogo.getUid(),
-            jogo.getNome(),
-            jogo.getNomeAlternativo(),
-            jogo.getAnoPublicacao() != null ? jogo.getAnoPublicacao().toString() : null,
-            jogo.getTempoDeJogo(),
-            jogo.getMinimoJogadores(),
-            jogo.getMaximoJogadores(),
-            jogo.getCodigoDeBarras(),
-            jogo.getIsDisponivel(),
-            jogo.getCriadoQuando(),
-            jogo.getAtualizadoQuando()
-        );
+                jogo.getUid(),
+                jogo.getNome(),
+                jogo.getNomeAlternativo(),
+                jogo.getAnoPublicacao() != null ? jogo.getAnoPublicacao().toString() : null,
+                jogo.getTempoDeJogo(),
+                jogo.getMinimoJogadores(),
+                jogo.getMaximoJogadores(),
+                jogo.getCodigoDeBarras(),
+                jogo.getIsDisponivel(),
+                jogo.getCriadoQuando(),
+                jogo.getAtualizadoQuando());
     }
 }

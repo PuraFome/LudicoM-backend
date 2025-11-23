@@ -43,7 +43,7 @@ public class Emprestimo {
     private String horaDevolucao;
 
     @Column(name = "is_devolvido", nullable = false)
-    private Boolean isDevolvido;
+    private Boolean isDevolvido = false; // evita null e garante que queries 'false' encontrem empréstimos ativos
 
     public String getUid() {
         return uid;
