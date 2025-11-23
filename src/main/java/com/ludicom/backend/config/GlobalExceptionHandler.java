@@ -7,6 +7,7 @@ import java.util.Map;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -16,7 +17,7 @@ import com.ludicom.backend.dto.ErrorResponse;
 import com.ludicom.backend.exception.BaseException;
 
 /**
- * Global exception handler for the application 
+ * Global exception handler for the application
  * Provides centralized error handling and consistent error responses
  */
 @RestControllerAdvice
@@ -38,10 +39,9 @@ public class GlobalExceptionHandler {
         });
 
         ErrorResponse errorResponse = new ErrorResponse(
-            "Erro de validação",
-            errors,
-            HttpStatus.BAD_REQUEST.value()
-        );
+                "Erro de validação",
+                errors,
+                HttpStatus.BAD_REQUEST.value());
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
     }
@@ -52,12 +52,22 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(BaseException.class)
     public ResponseEntity<ErrorResponse> handleBaseException(BaseException ex) {
         ErrorResponse errorResponse = new ErrorResponse(
-            ex.getMessage(),
-            ex.getErrorDetails(),
-            ex.getHttpStatus().value()
-        );
+                ex.getMessage(),
+                ex.getErrorDetails(),
+                ex.getHttpStatus().value());
 
         return ResponseEntity.status(ex.getHttpStatus()).body(errorResponse);
+    }
+
+    /**
+     * Mapeia violações de integridade (FK, unique, etc.) para 409 (CONFLICT)
+     */
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ErrorResponse> handleDataIntegrityViolation(DataIntegrityViolationException ex) {
+        ErrorResponse errorResponse = new ErrorResponse(
+                "Recurso em uso ou violação de integridade",
+                HttpStatus.CONFLICT.value());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
     }
 
     /**
@@ -70,17 +80,15 @@ public class GlobalExceptionHandler {
             Map<String, String> errors = new HashMap<>();
             errors.put("dataHora", "Formato de data ou hora inválido");
             ErrorResponse errorResponse = new ErrorResponse(
-                "Erro de validação",
-                errors,
-                HttpStatus.BAD_REQUEST.value()
-            );
+                    "Erro de validação",
+                    errors,
+                    HttpStatus.BAD_REQUEST.value());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
         }
         // Se não for erro de data/hora, retorna erro padrão
         ErrorResponse errorResponse = new ErrorResponse(
-            "Ocorreu um erro inesperado",
-            HttpStatus.BAD_REQUEST.value()
-        );
+                "Ocorreu um erro inesperado",
+                HttpStatus.BAD_REQUEST.value());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
     }
 
@@ -92,23 +100,21 @@ public class GlobalExceptionHandler {
         // Log the exception for debugging
         System.err.println("Erro não tratado: " + ex.getClass().getName());
         System.err.println("Mensagem: " + ex.getMessage());
-        
+
         ErrorResponse errorResponse;
         // Tratamento específico para erro de formato de data/hora
         if (ex instanceof DateTimeParseException) {
             Map<String, String> errors = new HashMap<>();
             errors.put("dataHora", "Formato de data ou hora inválido");
             errorResponse = new ErrorResponse(
-                "Erro de validação",
-                errors,
-                HttpStatus.BAD_REQUEST.value()
-            );
+                    "Erro de validação",
+                    errors,
+                    HttpStatus.BAD_REQUEST.value());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
         }
         errorResponse = new ErrorResponse(
-            "Ocorreu um erro inesperado",
-            HttpStatus.INTERNAL_SERVER_ERROR.value()
-        );
+                "Ocorreu um erro inesperado",
+                HttpStatus.INTERNAL_SERVER_ERROR.value());
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
     }
 }

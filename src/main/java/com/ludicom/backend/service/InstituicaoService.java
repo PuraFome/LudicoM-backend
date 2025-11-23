@@ -12,30 +12,34 @@ import com.ludicom.backend.dto.MessageResponse;
 import com.ludicom.backend.exception.RequiredFieldException;
 import com.ludicom.backend.exception.ResourceAlreadyExistsException;
 import com.ludicom.backend.exception.ResourceNotFoundException;
+import com.ludicom.backend.exception.ResourceInUseException;
 import com.ludicom.backend.model.Instituicao;
 import com.ludicom.backend.repository.InstituicaoRepository;
+import com.ludicom.backend.repository.EventoRepository;
 
 @Service
 @Transactional
 public class InstituicaoService {
 
     private final InstituicaoRepository instituicaoRepository;
+    private final EventoRepository eventoRepository;
 
-    public InstituicaoService(InstituicaoRepository instituicaoRepository) {
+    public InstituicaoService(InstituicaoRepository instituicaoRepository, EventoRepository eventoRepository) {
         this.instituicaoRepository = instituicaoRepository;
+        this.eventoRepository = eventoRepository;
     }
 
     /*
      * Criando uma nova instituição
      */
     public InstituicaoResponse createInstituicao(InstituicaoCreateRequest request) {
-        if(request.getNome() == null || request.getNome().trim().isEmpty()) {
+        if (request.getNome() == null || request.getNome().trim().isEmpty()) {
             throw new RequiredFieldException("Instituicao", "nome");
         }
 
         // Verifica se o nome da instituição já existe
         if (instituicaoRepository.existsByNome(request.getNome())) {
-          throw new ResourceAlreadyExistsException("Instituicao", "nome", request.getNome());
+            throw new ResourceAlreadyExistsException("Instituicao", "nome", request.getNome());
         }
 
         Instituicao instituicao = new Instituicao(request.getNome(), request.getEndereco());
@@ -65,16 +69,17 @@ public class InstituicaoService {
      * Atualizar uma instituição existente
      */
     public InstituicaoResponse updateInstituicao(String id, InstituicaoCreateRequest request) {
-        if(request.getNome() == null || request.getNome().trim().isEmpty()) {
+        if (request.getNome() == null || request.getNome().trim().isEmpty()) {
             throw new RequiredFieldException("Instituicao", "nome");
         }
 
         Instituicao instituicao = instituicaoRepository.findByUid(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Instituicao", "ID", id));
 
-        // Verifica se o nome está sendo alterado e se já existe outra instituição com esse nome
+        // Verifica se o nome está sendo alterado e se já existe outra instituição com
+        // esse nome
         if (!instituicao.getNome().equals(request.getNome()) && instituicaoRepository.existsByNome(request.getNome())) {
-              throw new ResourceAlreadyExistsException("Instituicao", "nome", request.getNome());
+            throw new ResourceAlreadyExistsException("Instituicao", "nome", request.getNome());
         }
 
         instituicao.setNome(request.getNome());
@@ -88,19 +93,23 @@ public class InstituicaoService {
      * Deletar uma instituição
      */
     public MessageResponse deleteInstituicao(String id) {
-
         if (!instituicaoRepository.existsById(id)) {
             throw new ResourceNotFoundException("Instituicao", "ID", id);
         }
+
+        // Bloqueia se houver qualquer evento associado à instituição
+        if (eventoRepository.existsByInstituicaoUid(id)) {
+            throw new ResourceInUseException("Instituicao");
+        }
+
         instituicaoRepository.deleteById(id);
         return new MessageResponse("Instituição deletada com sucesso");
     }
 
     private InstituicaoResponse convertToResponse(Instituicao instituicao) {
         return new InstituicaoResponse(
-            instituicao.getUid(),
-            instituicao.getNome(),
-            instituicao.getEndereco()
-        );
+                instituicao.getUid(),
+                instituicao.getNome(),
+                instituicao.getEndereco());
     }
 }

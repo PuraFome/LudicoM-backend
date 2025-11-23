@@ -12,7 +12,7 @@ import com.ludicom.backend.model.Evento;
 
 @Repository
 public interface EventoRepository extends JpaRepository<Evento, String> {
-    
+
     @Query("SELECT e FROM Evento e WHERE e.uid = :uid")
     Optional<Evento> findByUid(String uid);
 
@@ -24,4 +24,10 @@ public interface EventoRepository extends JpaRepository<Evento, String> {
 
     @Query("SELECT e FROM Evento e WHERE e.data >= :dataInicio AND e.data <= :dataFim")
     List<Evento> findByDataBetween(LocalDate dataInicio, LocalDate dataFim);
+
+    // Métodos para bloquear exclusão de instituição se houver qualquer evento
+    // associado
+    boolean existsByInstituicaoUid(String uid);
+
+    long countByInstituicaoUid(String uid);
 }
