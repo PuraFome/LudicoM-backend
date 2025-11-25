@@ -97,6 +97,12 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGeneralException(Exception ex) {
+        // Ignora ClientAbortException - ocorre quando o cliente fecha a conexão prematuramente
+        // Não há nada que possamos fazer, pois o cliente já se desconectou
+        if (ex.getClass().getName().contains("ClientAbortException")) {
+            return null; // Retorna null para não tentar enviar resposta
+        }
+        
         // Log the exception for debugging
         System.err.println("Erro não tratado: " + ex.getClass().getName());
         System.err.println("Mensagem: " + ex.getMessage());

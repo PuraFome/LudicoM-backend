@@ -23,4 +23,6 @@ public interface JogoRepository extends JpaRepository<Jogo, String> {
     @Query("SELECT j FROM Jogo j WHERE j.uid = :uid")
     Optional<Jogo> findByUid(String uid);
 
+    Optional<Jogo> findByCodigoDeBarras(String codigoDeBarras);
+
 }

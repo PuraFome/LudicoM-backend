@@ -70,8 +70,11 @@ public class EmprestimoService {
         }
 
         // Buscar entidades relacionadas
+        // Tenta buscar por UID, depois por nome, depois por código de barras
         Jogo jogo = jogoRepository.findById(request.getIdJogo())
-                .orElseThrow(() -> new ResourceNotFoundException("Jogo", "ID", request.getIdJogo()));
+                .or(() -> jogoRepository.findByNome(request.getIdJogo()))
+                .or(() -> jogoRepository.findByCodigoDeBarras(request.getIdJogo()))
+                .orElseThrow(() -> new ResourceNotFoundException("Jogo", "nome ou código de barras", request.getIdJogo()));
 
         // Verificar se o jogo está disponível
         if (!jogo.getIsDisponivel()) {
@@ -156,8 +159,11 @@ public class EmprestimoService {
                 .orElseThrow(() -> new ResourceNotFoundException("Emprestimo", "ID", id));
 
         // Buscar entidades relacionadas
+        // Tenta buscar por UID, depois por nome, depois por código de barras
         Jogo jogo = jogoRepository.findById(request.getIdJogo())
-                .orElseThrow(() -> new ResourceNotFoundException("Jogo", "ID", request.getIdJogo()));
+                .or(() -> jogoRepository.findByNome(request.getIdJogo()))
+                .or(() -> jogoRepository.findByCodigoDeBarras(request.getIdJogo()))
+                .orElseThrow(() -> new ResourceNotFoundException("Jogo", "nome ou código de barras", request.getIdJogo()));
 
         Participante participante = participanteRepository.findById(request.getIdParticipante())
                 .orElseThrow(() -> new ResourceNotFoundException("Participante", "ID", request.getIdParticipante()));
@@ -207,12 +213,18 @@ public class EmprestimoService {
      * Deletar um empréstimo
      */
     public MessageResponse deleteEmprestimo(String id) {
-        if (!emprestimoRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Emprestimo", "ID", id);
+        Emprestimo emprestimo = emprestimoRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Emprestimo", "ID", id));
+
+        // Marcar jogo associado como disponível (independente do estado atual)
+        Jogo jogo = emprestimo.getJogo();
+        if (jogo != null && (jogo.getIsDisponivel() == null || !jogo.getIsDisponivel())) {
+            jogo.setIsDisponivel(true);
+            jogoRepository.save(jogo);
         }
 
-        emprestimoRepository.deleteById(id);
-        return new MessageResponse("Empréstimo deletado com sucesso");
+        emprestimoRepository.delete(emprestimo);
+        return new MessageResponse("Empréstimo deletado com sucesso e jogo marcado como disponível");
     }
 
     /**
