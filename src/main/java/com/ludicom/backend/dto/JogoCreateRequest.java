@@ -2,7 +2,6 @@ package com.ludicom.backend.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-import java.time.LocalDate;
 
 /**
  * Data Transfer Object for Jogo creation requests.
@@ -16,7 +15,7 @@ public class JogoCreateRequest {
     @Size(max = 200, message = "Nome alternativo deve ter no máximo 200 caracteres")
     private String nomeAlternativo;
 
-    private LocalDate anoPublicacao;
+    private Integer anoPublicacao;
 
     private Integer tempoDeJogo; // em minutos
 
@@ -31,7 +30,7 @@ public class JogoCreateRequest {
     // Constructors
     public JogoCreateRequest() {}
 
-    public JogoCreateRequest(String nome, String nomeAlternativo, LocalDate anoPublicacao, Integer tempoDeJogo,
+    public JogoCreateRequest(String nome, String nomeAlternativo, Integer anoPublicacao, Integer tempoDeJogo,
                              Integer minimoJogadores, Integer maximoJogadores, String codigoDeBarras, Boolean isDisponivel) {
         this.nome = nome;
         this.nomeAlternativo = nomeAlternativo;
@@ -58,10 +57,10 @@ public class JogoCreateRequest {
         this.nomeAlternativo = nomeAlternativo;
     }
 
-    public LocalDate getAnoPublicacao() {
+    public Integer getAnoPublicacao() {
         return anoPublicacao;
     }
-    public void setAnoPublicacao(LocalDate anoPublicacao) {
+    public void setAnoPublicacao(Integer anoPublicacao) {
         this.anoPublicacao = anoPublicacao;
     }
 

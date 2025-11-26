@@ -1,5 +1,4 @@
 package com.ludicom.backend.model;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -26,8 +25,8 @@ public class Jogo {
     @Column(name = "nome_alternativo", columnDefinition="varchar(200)")
     private String nomeAlternativo;
 
-    @Column(name = "ano_publicacao", columnDefinition="date")
-    private LocalDate anoPublicacao;
+    @Column(name = "ano_publicacao", columnDefinition="int")
+    private Integer anoPublicacao;
 
     @Column(name = "tempo_de_jogo", columnDefinition="int")
     private Integer tempoDeJogo; // em minutos
@@ -63,7 +62,7 @@ public class Jogo {
         this.nome = nome;
     }
 
-    public Jogo(String nome, String nomeAlternativo, LocalDate anoPublicacao, Integer tempoDeJogo,
+    public Jogo(String nome, String nomeAlternativo, Integer anoPublicacao, Integer tempoDeJogo,
                 Integer minimoJogadores, Integer maximoJogadores, String codigoDeBarras, Boolean isDisponivel) {
         this(nome);
         this.nomeAlternativo = nomeAlternativo;
@@ -94,10 +93,10 @@ public class Jogo {
         this.nomeAlternativo = nomeAlternativo;
     }
 
-    public LocalDate getAnoPublicacao() {
+    public Integer getAnoPublicacao() {
         return anoPublicacao;
     }
-    public void setAnoPublicacao(LocalDate anoPublicacao) {
+    public void setAnoPublicacao(Integer anoPublicacao) {
         this.anoPublicacao = anoPublicacao;
     }
 

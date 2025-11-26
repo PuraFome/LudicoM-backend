@@ -8,7 +8,7 @@ public class JogoResponse {
     private String uid;
     private String nome;
     private String nomeAlternativo;
-    private String anoPublicacao;
+    private Integer anoPublicacao;
     private Integer tempoDeJogo; // em minutos
     private Integer minimoJogadores;
     private Integer maximoJogadores;
@@ -20,7 +20,7 @@ public class JogoResponse {
     // Constructors
     public JogoResponse() {}
 
-    public JogoResponse(String uid, String nome, String nomeAlternativo, String anoPublicacao, Integer tempoDeJogo,
+    public JogoResponse(String uid, String nome, String nomeAlternativo, Integer anoPublicacao, Integer tempoDeJogo,
                         Integer minimoJogadores, Integer maximoJogadores, String codigoDeBarras, Boolean isDisponivel, LocalDateTime criadoQuando, LocalDateTime atualizadoQuando) {
         this.uid = uid;
         this.nome = nome;
@@ -60,11 +60,11 @@ public class JogoResponse {
         this.nomeAlternativo = nomeAlternativo;
     }
 
-    public String getAnoPublicacao() {
+    public Integer getAnoPublicacao() {
         return anoPublicacao;
     }
 
-    public void setAnoPublicacao(String anoPublicacao) {
+    public void setAnoPublicacao(Integer anoPublicacao) {
         this.anoPublicacao = anoPublicacao;
     }
 

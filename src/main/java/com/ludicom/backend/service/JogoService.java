@@ -11,11 +11,11 @@ import com.ludicom.backend.dto.JogoResponse;
 import com.ludicom.backend.dto.MessageResponse;
 import com.ludicom.backend.exception.RequiredFieldException;
 import com.ludicom.backend.exception.ResourceAlreadyExistsException;
-import com.ludicom.backend.exception.ResourceNotFoundException;
 import com.ludicom.backend.exception.ResourceInUseException;
+import com.ludicom.backend.exception.ResourceNotFoundException;
 import com.ludicom.backend.model.Jogo;
-import com.ludicom.backend.repository.JogoRepository;
 import com.ludicom.backend.repository.EmprestimoRepository;
+import com.ludicom.backend.repository.JogoRepository;
 
 @Service
 @Transactional
@@ -120,7 +120,7 @@ public class JogoService {
                 jogo.getUid(),
                 jogo.getNome(),
                 jogo.getNomeAlternativo(),
-                jogo.getAnoPublicacao() != null ? jogo.getAnoPublicacao().toString() : null,
+                jogo.getAnoPublicacao(),
                 jogo.getTempoDeJogo(),
                 jogo.getMinimoJogadores(),
                 jogo.getMaximoJogadores(),

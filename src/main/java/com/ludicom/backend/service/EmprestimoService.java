@@ -237,7 +237,7 @@ public class EmprestimoService {
                 jogo.getUid(),
                 jogo.getNome(),
                 jogo.getNomeAlternativo(),
-                jogo.getAnoPublicacao() != null ? jogo.getAnoPublicacao().toString() : null,
+                jogo.getAnoPublicacao(),
                 jogo.getTempoDeJogo(),
                 jogo.getMinimoJogadores(),
                 jogo.getMaximoJogadores(),
