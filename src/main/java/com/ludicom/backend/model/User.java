@@ -1,3 +1,4 @@
+
 package com.ludicom.backend.model;
 
 import jakarta.persistence.*;

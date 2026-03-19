@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 public class UserResponse {
 
     private Long id;
-    private String username;
+    private String nome;
     private String email;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
@@ -17,9 +17,9 @@ public class UserResponse {
     // Constructors
     public UserResponse() {}
 
-    public UserResponse(Long id, String username, String email, LocalDateTime createdAt, LocalDateTime updatedAt, Boolean isActive) {
+    public UserResponse(Long id, String nome, String email, LocalDateTime createdAt, LocalDateTime updatedAt, Boolean isActive) {
         this.id = id;
-        this.username = username;
+        this.nome = nome;
         this.email = email;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
@@ -35,12 +35,12 @@ public class UserResponse {
         this.id = id;
     }
 
-    public String getUsername() {
-        return username;
+    public String getNome() {
+        return nome;
     }
 
-    public void setUsername(String username) {
-        this.username = username;
+    public void setNome(String nome) {
+        this.nome = nome;
     }
 
     public String getEmail() {
@@ -79,7 +79,7 @@ public class UserResponse {
     public String toString() {
         return "UserResponse{" +
                 "id=" + id +
-                ", username='" + username + '\'' +
+                ", nome='" + nome + '\'' +
                 ", email='" + email + '\'' +
                 ", createdAt=" + createdAt +
                 ", updatedAt=" + updatedAt +
