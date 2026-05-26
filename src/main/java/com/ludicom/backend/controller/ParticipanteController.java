@@ -2,6 +2,8 @@ package com.ludicom.backend.controller;
 
 import java.util.List;
 
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -13,11 +15,13 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.ludicom.backend.dto.MessageResponse;
+import com.ludicom.backend.dto.PageResponse;
 import com.ludicom.backend.dto.ParticipanteCreateRequest;
 import com.ludicom.backend.dto.ParticipanteResponse;
-import com.ludicom.backend.dto.MessageResponse;
 import com.ludicom.backend.service.ParticipanteService;
 
 import jakarta.validation.Valid;
@@ -49,9 +53,18 @@ public class ParticipanteController {
      * GET /api/participante
      */
     @GetMapping
-    public ResponseEntity<List<ParticipanteResponse>> getAllParticipantes() {
-        List<ParticipanteResponse> participantes = participanteService.getAllParticipantes();
-        return ResponseEntity.ok(participantes);
+    public ResponseEntity<?> getAllParticipantes(
+            @RequestParam(value = "paginated", defaultValue = "false") boolean paginated,
+            @RequestParam(value = "search", defaultValue = "") String search,
+            @PageableDefault(size = 20, page = 0) Pageable pageable) {
+        
+        if (paginated) {
+            PageResponse<ParticipanteResponse> participants = participanteService.getParticipantesPaginated(pageable, search);
+            return ResponseEntity.ok(participants);
+        } else {
+            List<ParticipanteResponse> participantes = participanteService.getAllParticipantes();
+            return ResponseEntity.ok(participantes);
+        }
     }
 
     /**

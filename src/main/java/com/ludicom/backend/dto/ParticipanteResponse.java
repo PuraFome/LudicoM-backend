@@ -1,7 +1,5 @@
 package com.ludicom.backend.dto;
 
-import com.ludicom.backend.model.Instituicao;
-
 /**
  * Data Transfer Object for Participante responses.
  */
@@ -11,13 +9,13 @@ public class ParticipanteResponse {
     private String nome;
     private String email;
     private String documento;
-    private Instituicao instituicao;
+    private InstituicaoResponse instituicao;
     private String ra;
 
     // Constructors
     public ParticipanteResponse() {}
 
-    public ParticipanteResponse(String uid, String nome, String email, String documento, Instituicao instituicao, String ra) {
+    public ParticipanteResponse(String uid, String nome, String email, String documento, InstituicaoResponse instituicao, String ra) {
         this.uid = uid;
         this.nome = nome;
         this.email = email;
@@ -59,11 +57,11 @@ public class ParticipanteResponse {
         this.documento = documento;
     }
 
-    public Instituicao getInstituicao() {
+    public InstituicaoResponse getInstituicao() {
         return instituicao;
     }
 
-    public void setInstituicao(Instituicao instituicao) {
+    public void setInstituicao(InstituicaoResponse instituicao) {
         this.instituicao = instituicao;
     }
 

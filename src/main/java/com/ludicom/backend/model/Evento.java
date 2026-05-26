@@ -22,7 +22,7 @@ public class Evento {
     private String uid;
 
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_instituicao", nullable = false)
     private Instituicao instituicao;
 

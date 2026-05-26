@@ -57,3 +57,6 @@ application-prod.properties
 ./prisma/migrations/
 ./prisma/node_modules/
 ./prisma/.env
+graphify-out
+./src/graphify-out
+.opencode

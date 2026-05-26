@@ -1,14 +1,17 @@
 package com.ludicom.backend.service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.ludicom.backend.dto.JogoCreateRequest;
 import com.ludicom.backend.dto.JogoResponse;
 import com.ludicom.backend.dto.MessageResponse;
+import com.ludicom.backend.dto.PageResponse;
 import com.ludicom.backend.exception.RequiredFieldException;
 import com.ludicom.backend.exception.ResourceAlreadyExistsException;
 import com.ludicom.backend.exception.ResourceInUseException;
@@ -16,6 +19,7 @@ import com.ludicom.backend.exception.ResourceNotFoundException;
 import com.ludicom.backend.model.Jogo;
 import com.ludicom.backend.repository.EmprestimoRepository;
 import com.ludicom.backend.repository.JogoRepository;
+import com.ludicom.backend.specification.JogoSpecification;
 
 @Service
 @Transactional
@@ -53,7 +57,25 @@ public class JogoService {
     public List<JogoResponse> getAllJogos() {
         return jogoRepository.findAll().stream()
                 .map(this::convertToResponse)
-                .collect(Collectors.toList());
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public PageResponse<JogoResponse> getJogosPaginated(Pageable pageable, String search) {
+        Specification<Jogo> spec = Specification.where(null);
+        if (search != null && !search.isBlank()) {
+            spec = JogoSpecification.bySearchTerm(search);
+        }
+        Page<Jogo> page = jogoRepository.findAll(spec, pageable);
+        return new PageResponse<>(
+                page.getContent().stream().map(this::convertToResponse).toList(),
+                page.getNumber(),
+                page.getSize(),
+                page.getTotalElements(),
+                page.getTotalPages(),
+                page.isLast(),
+                page.isFirst()
+        );
     }
 
     /*

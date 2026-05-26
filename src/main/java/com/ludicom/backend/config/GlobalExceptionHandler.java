@@ -56,7 +56,7 @@ public class GlobalExceptionHandler {
                 ex.getErrorDetails(),
                 ex.getHttpStatus().value());
 
-        return ResponseEntity.status(ex.getHttpStatus()).body(errorResponse);
+        return ResponseEntity.status((int) ex.getHttpStatus().value()).body(errorResponse);
     }
 
     /**

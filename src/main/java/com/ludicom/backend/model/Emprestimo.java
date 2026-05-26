@@ -1,5 +1,4 @@
 package com.ludicom.backend.model;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -10,7 +9,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
 
 @Entity
 @Table(name = "emprestimo")
@@ -21,40 +20,42 @@ public class Emprestimo {
     @Column(columnDefinition = "text")
     private String uid;
 
-    @NotNull(message = "Jogo é obrigatório")
+    @NotBlank(message = "Participante é obrigatório")
+    @OneToOne(fetch  = FetchType.LAZY)
+    @JoinColumn(name = "id_participante", nullable = false)
+    private Participante participante;
+
+    @NotBlank(message = "Jogo é obrigatório")
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_jogo", nullable = false)
     private Jogo jogo;
 
-    @NotNull(message = "Participante é obrigatório")
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_participante", nullable = false)
-    private Participante participante;
-
-    @NotNull(message = "Evento é obrigatório")
+    @NotBlank(message = "Evento é obrigatório")
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_evento", nullable = false)
     private Evento evento;
 
-    @Column(name = "hora_emprestimo", nullable = false, columnDefinition = "time")
+    @NotBlank(message = "Horário do empréstimo é obrigatório")
+    @Column(name = "hora_emprestimo", nullable = false, columnDefinition="time")
     private String horaEmprestimo;
 
-    @Column(name = "hora_devolucao", columnDefinition = "time")
+    @NotBlank(message = "Horário da devolução é obrigatório")
+    @Column(name = "hora_devolucao", nullable = false, columnDefinition="time")
     private String horaDevolucao;
 
     @Column(name = "is_devolvido", nullable = false)
-    private Boolean isDevolvido = false; // evita null e garante que queries 'false' encontrem empréstimos ativos
+    private Boolean isDevolvido;
 
     public String getUid() {
         return uid;
     }
 
-    public Jogo getJogo() {
-        return jogo;
-    }
-
     public Participante getParticipante() {
         return participante;
+    }
+
+    public Jogo getJogo() {
+        return jogo;
     }
 
     public Evento getEvento() {
@@ -73,12 +74,12 @@ public class Emprestimo {
         return isDevolvido;
     }
 
-    public void setJogo(Jogo jogo) {
-        this.jogo = jogo;
-    }
-
     public void setParticipante(Participante participante) {
         this.participante = participante;
+    }
+
+    public void setJogo(Jogo jogo) {
+        this.jogo = jogo;
     }
 
     public void setEvento(Evento evento) {

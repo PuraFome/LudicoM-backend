@@ -3,8 +3,11 @@ package com.ludicom.backend.service;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.regex.Pattern;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -12,6 +15,7 @@ import com.ludicom.backend.dto.EventoCreateRequest;
 import com.ludicom.backend.dto.EventoResponse;
 import com.ludicom.backend.dto.InstituicaoResponse;
 import com.ludicom.backend.dto.MessageResponse;
+import com.ludicom.backend.dto.PageResponse;
 import com.ludicom.backend.exception.InvalidDateTimeFormatException;
 import com.ludicom.backend.exception.RequiredFieldException;
 import com.ludicom.backend.exception.ResourceNotFoundException;
@@ -19,10 +23,13 @@ import com.ludicom.backend.model.Evento;
 import com.ludicom.backend.model.Instituicao;
 import com.ludicom.backend.repository.EventoRepository;
 import com.ludicom.backend.repository.InstituicaoRepository;
+import com.ludicom.backend.specification.EventoSpecification;
 
 @Service
 @Transactional
 public class EventoService {
+
+    private static final Pattern SHORT_TIME_PATTERN = Pattern.compile("^([01]\\d|2[0-3]):([0-5]\\d)$");
 
     private final EventoRepository eventoRepository;
     private final InstituicaoRepository instituicaoRepository;
@@ -39,7 +46,7 @@ public class EventoService {
      * Normaliza formato de hora, adicionando :00 se estiver no formato HH:MM
      */
     private String normalizeTimeFormat(String time) {
-        if (time != null && time.matches("^([01]\\d|2[0-3]):([0-5]\\d)$")) {
+        if (time != null && SHORT_TIME_PATTERN.matcher(time).matches()) {
             return time + ":00";
         }
         return time;
@@ -85,7 +92,25 @@ public class EventoService {
     public List<EventoResponse> getAllEventos() {
         return eventoRepository.findAll().stream()
                 .map(this::convertToResponse)
-                .collect(Collectors.toList());
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public PageResponse<EventoResponse> getEventosPaginated(Pageable pageable, String search) {
+        Specification<Evento> spec = Specification.where(null);
+        if (search != null && !search.isBlank()) {
+            spec = EventoSpecification.bySearchTerm(search);
+        }
+        Page<Evento> page = eventoRepository.findAll(spec, pageable);
+        return new PageResponse<>(
+                page.getContent().stream().map(this::convertToResponse).toList(),
+                page.getNumber(),
+                page.getSize(),
+                page.getTotalElements(),
+                page.getTotalPages(),
+                page.isLast(),
+                page.isFirst()
+        );
     }
 
     /*
@@ -144,11 +169,8 @@ public class EventoService {
             throw new ResourceNotFoundException("Evento", "ID", id);
         }
         
-        // Excluir todos os empréstimos associados ao evento antes de excluir o evento
-        List<com.ludicom.backend.model.Emprestimo> emprestimos = emprestimoRepository.findByEventoId(id);
-        if (!emprestimos.isEmpty()) {
-            emprestimoRepository.deleteAll(emprestimos);
-        }
+        // Exclui os empréstimos associados em uma única operação de banco.
+        emprestimoRepository.deleteByEventoId(id);
         
         eventoRepository.deleteById(id);
         return new MessageResponse("Evento deletado com sucesso");

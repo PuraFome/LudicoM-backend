@@ -1,12 +1,16 @@
 package com.ludicom.backend.service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.ludicom.backend.dto.InstituicaoResponse;
 import com.ludicom.backend.dto.MessageResponse;
+import com.ludicom.backend.dto.PageResponse;
 import com.ludicom.backend.dto.ParticipanteCreateRequest;
 import com.ludicom.backend.dto.ParticipanteResponse;
 import com.ludicom.backend.exception.RequiredFieldException;
@@ -16,6 +20,7 @@ import com.ludicom.backend.model.Instituicao;
 import com.ludicom.backend.model.Participante;
 import com.ludicom.backend.repository.InstituicaoRepository;
 import com.ludicom.backend.repository.ParticipanteRepository;
+import com.ludicom.backend.specification.ParticipanteSpecification;
 
 @Service
 @Transactional
@@ -95,7 +100,28 @@ public class ParticipanteService {
     public List<ParticipanteResponse> getAllParticipantes() {
         return participanteRepository.findAll().stream()
                 .map(this::convertToResponse)
-                .collect(Collectors.toList());
+                .toList();
+    }
+
+    /**
+     * Listar participantes com paginação
+     */
+    @Transactional(readOnly = true)
+    public PageResponse<ParticipanteResponse> getParticipantesPaginated(Pageable pageable, String search) {
+        Specification<Participante> spec = Specification.where(null);
+        if (search != null && !search.isBlank()) {
+            spec = ParticipanteSpecification.bySearchTerm(search);
+        }
+        Page<Participante> page = participanteRepository.findAll(spec, pageable);
+        return new PageResponse<>(
+                page.getContent().stream().map(this::convertToResponse).toList(),
+                page.getNumber(),
+                page.getSize(),
+                page.getTotalElements(),
+                page.getTotalPages(),
+                page.isLast(),
+                page.isFirst()
+        );
     }
 
     /**
@@ -196,7 +222,18 @@ public class ParticipanteService {
                 participante.getNome(),
                 participante.getEmail(),
                 participante.getDocumento(),
-                participante.getInstituicao(),
+                convertToInstituicaoResponse(participante.getInstituicao()),
                 participante.getRa());
+    }
+
+    private InstituicaoResponse convertToInstituicaoResponse(Instituicao instituicao) {
+        if (instituicao == null) {
+            return null;
+        }
+
+        return new InstituicaoResponse(
+                instituicao.getUid(),
+                instituicao.getNome(),
+                instituicao.getEndereco());
     }
 }

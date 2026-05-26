@@ -4,15 +4,36 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import com.ludicom.backend.model.Evento;
 
 @Repository
-public interface EventoRepository extends JpaRepository<Evento, String> {
+public interface EventoRepository extends JpaRepository<Evento, String>, JpaSpecificationExecutor<Evento> {
 
+    @Override
+    @EntityGraph(attributePaths = {"instituicao"})
+    List<Evento> findAll();
+
+    @EntityGraph(attributePaths = {"instituicao"})
+    Page<Evento> findAll(Pageable pageable);
+
+    @Override
+    @EntityGraph(attributePaths = {"instituicao"})
+    Page<Evento> findAll(Specification<Evento> spec, Pageable pageable);
+
+    @Override
+    @EntityGraph(attributePaths = {"instituicao"})
+    Optional<Evento> findById(String id);
+
+    @EntityGraph(attributePaths = {"instituicao"})
     @Query("SELECT e FROM Evento e WHERE e.uid = :uid")
     Optional<Evento> findByUid(String uid);
 

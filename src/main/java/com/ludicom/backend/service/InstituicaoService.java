@@ -1,21 +1,25 @@
 package com.ludicom.backend.service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.ludicom.backend.dto.InstituicaoCreateRequest;
 import com.ludicom.backend.dto.InstituicaoResponse;
 import com.ludicom.backend.dto.MessageResponse;
+import com.ludicom.backend.dto.PageResponse;
 import com.ludicom.backend.exception.RequiredFieldException;
 import com.ludicom.backend.exception.ResourceAlreadyExistsException;
-import com.ludicom.backend.exception.ResourceNotFoundException;
 import com.ludicom.backend.exception.ResourceInUseException;
+import com.ludicom.backend.exception.ResourceNotFoundException;
 import com.ludicom.backend.model.Instituicao;
-import com.ludicom.backend.repository.InstituicaoRepository;
 import com.ludicom.backend.repository.EventoRepository;
+import com.ludicom.backend.repository.InstituicaoRepository;
+import com.ludicom.backend.specification.InstituicaoSpecification;
 
 @Service
 @Transactional
@@ -51,7 +55,25 @@ public class InstituicaoService {
     public List<InstituicaoResponse> getAllInstituicoes() {
         return instituicaoRepository.findAll().stream()
                 .map(this::convertToResponse)
-                .collect(Collectors.toList());
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public PageResponse<InstituicaoResponse> getInstituicoesPaginated(Pageable pageable, String search) {
+        Specification<Instituicao> spec = Specification.where(null);
+        if (search != null && !search.isBlank()) {
+            spec = InstituicaoSpecification.bySearchTerm(search);
+        }
+        Page<Instituicao> page = instituicaoRepository.findAll(spec, pageable);
+        return new PageResponse<>(
+                page.getContent().stream().map(this::convertToResponse).toList(),
+                page.getNumber(),
+                page.getSize(),
+                page.getTotalElements(),
+                page.getTotalPages(),
+                page.isLast(),
+                page.isFirst()
+        );
     }
 
     /*

@@ -3,14 +3,20 @@ package com.ludicom.backend.repository;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import com.ludicom.backend.model.Jogo;
 
 @Repository
-public interface JogoRepository extends JpaRepository<Jogo, String> {
+public interface JogoRepository extends JpaRepository<Jogo, String>, JpaSpecificationExecutor<Jogo> {
+    
+    @Override
+    Page<Jogo> findAll(Pageable pageable);
     
     Optional<Jogo> findByNome(String nome);
     

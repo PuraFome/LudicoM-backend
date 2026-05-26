@@ -3,14 +3,20 @@ package com.ludicom.backend.repository;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import com.ludicom.backend.model.Instituicao;
 
 @Repository
-public interface InstituicaoRepository extends JpaRepository<Instituicao, String> {
+public interface InstituicaoRepository extends JpaRepository<Instituicao, String>, JpaSpecificationExecutor<Instituicao> {
+    
+    @Override
+    Page<Instituicao> findAll(Pageable pageable);
     
     Optional<Instituicao> findByNome(String nome);
     

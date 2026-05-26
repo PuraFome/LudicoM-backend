@@ -2,6 +2,8 @@ package com.ludicom.backend.controller;
 
 import java.util.List;
 
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -13,11 +15,13 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.ludicom.backend.dto.EventoCreateRequest;
 import com.ludicom.backend.dto.EventoResponse;
 import com.ludicom.backend.dto.MessageResponse;
+import com.ludicom.backend.dto.PageResponse;
 import com.ludicom.backend.service.EventoService;
 
 import jakarta.validation.Valid;
@@ -47,9 +51,18 @@ public class EventoController {
      * Listar todos os eventos
      */
     @GetMapping
-    public ResponseEntity<List<EventoResponse>> getAllEventos() {
-        List<EventoResponse> eventos = eventoService.getAllEventos();
-        return ResponseEntity.ok(eventos);
+    public ResponseEntity<?> getAllEventos(
+            @RequestParam(value = "paginated", defaultValue = "false") boolean paginated,
+            @RequestParam(value = "search", defaultValue = "") String search,
+            @PageableDefault(size = 20, page = 0) Pageable pageable) {
+        
+        if (paginated) {
+            PageResponse<EventoResponse> eventos = eventoService.getEventosPaginated(pageable, search);
+            return ResponseEntity.ok(eventos);
+        } else {
+            List<EventoResponse> eventos = eventoService.getAllEventos();
+            return ResponseEntity.ok(eventos);
+        }
     }
 
     /**
